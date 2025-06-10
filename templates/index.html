@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Accent Detection | Speech Analysis Tool</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Round">
+  <link href="https://cdn.jsdelivr.net/npm/@mui/material@5.13.5/dist/material.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #1a73e8;
+      --primary-hover: #1765cc;
+      --secondary-color: #f1f3f4;
+      --text-primary: #202124;
+      --text-secondary: #5f6368;
+      --border-color: #dadce0;
+      --success-color: #34a853;
+      --warning-color: #f9ab00;
+      --error-color: #d93025;
+      --surface-color: #ffffff;
+      --background-color: #f8f9fa;
+      --shadow-1: 0 1px 2px rgba(60,64,67,0.3), 0 2px 6px 2px rgba(60,64,67,0.15);
+      --shadow-2: 0 1px 3px rgba(60,64,67,0.3), 0 4px 8px 3px rgba(60,64,67,0.15);
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: var(--background-color);
+      font-family: 'Google Sans', Roboto, Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      color: var(--text-primary);
+      line-height: 1.5;
+    }
+
+    .app-container {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 24px;
+    }
+
+    .main-content {
+      max-width: 900px;
+      width: 100%;
+      margin: 40px auto;
+      transition: var(--transition);
+    }
+
+    .main-content:hover {
+      box-shadow: var(--shadow-2);
+    }
+
+    .tool-header {
+      padding: 24px 32px;
+      border-bottom: 1px solid var(--border-color);
+      background-color: var(--surface-color);
+    }
+
+    .tool-title {
+      font-size: 24px;
+      font-weight: 500;
+      margin: 0 0 8px 0;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+    }
+
+    .tool-subtitle {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin: 0;
+    }
+
+          .tool-body {
+        padding: 24px 32px;
+      }
+
+      .main-content {
+        background-color: var(--surface-color);
+        border-radius: 8px;
+        box-shadow: var(--shadow-1);
+        overflow: hidden;
+        position: relative;
+      }
+
+      .main-content:hover {
+        box-shadow: var(--shadow-2);
+      }
+
+      .chat-container {
+        position: fixed;
+        top: 50%;
+        right: 60px;
+        width: 380px;
+        height: 500px;
+        background-color: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+        opacity: 0;
+        transform: translate(100%, -50%);
+        transition: var(--transition);
+        display: none;
+        z-index: 1000;
+        box-shadow: var(--shadow-2);
+      }
+
+      .chat-container.visible {
+        display: block;
+        opacity: 1;
+        transform: translate(0, -50%);
+      }
+
+      .chat-header {
+        padding: 16px;
+        background-color: var(--secondary-color);
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        font-weight: 500;
+        font-size: 14px;
+      }
+
+      .chat-header .material-icons-round {
+        margin-right: 8px;
+        color: var(--primary-color);
+      }
+
+      .chat-messages {
+        height: calc(100% - 140px);
+        overflow-y: auto;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .chat-message {
+        max-width: 85%;
+        padding: 10px 14px;
+        border-radius: 12px;
+        font-size: 14px;
+        line-height: 1.4;
+        animation: messageSlideIn 0.3s ease;
+      }
+
+      .chat-message.user {
+        align-self: flex-end;
+        background-color: var(--primary-color);
+        color: white;
+        border-bottom-right-radius: 4px;
+      }
+
+      .chat-message.bot {
+        align-self: flex-start;
+        background-color: var(--secondary-color);
+        color: var(--text-primary);
+        border-bottom-left-radius: 4px;
+      }
+
+      .chat-message.bot .timestamp {
+        color: var(--primary-color);
+        font-weight: 500;
+        font-size: 12px;
+      }
+
+      .chat-input-area {
+        padding: 16px;
+        border-top: 1px solid var(--border-color);
+        background-color: var(--surface-color);
+      }
+
+      .chat-input-row {
+        display: flex;
+        gap: 8px;
+        align-items: flex-end;
+      }
+
+      .chat-input {
+        flex: 1;
+        padding: 10px 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        outline: none;
+        resize: none;
+        font-family: inherit;
+        font-size: 14px;
+        max-height: 100px;
+        min-height: 40px;
+      }
+
+      .chat-input:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 2px rgba(26,115,232,0.2);
+      }
+
+      .chat-send-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: var(--transition);
+      }
+
+      .chat-send-btn:hover {
+        background-color: var(--primary-hover);
+        transform: scale(1.05);
+      }
+
+      .chat-send-btn:disabled {
+        background-color: var(--border-color);
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .chat-placeholder {
+        text-align: center;
+        color: var(--text-secondary);
+        font-size: 14px;
+        padding: 40px 20px;
+        font-style: italic;
+      }
+
+      @keyframes messageSlideIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+    .input-section {
+      margin-bottom: 32px;
+    }
+
+    .input-card {
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 20px;
+      background-color: var(--surface-color);
+      transition: var(--transition);
+    }
+
+    .input-card:hover {
+      border-color: var(--primary-color);
+    }
+
+    .input-card.focused {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(26,115,232,0.2);
+    }
+
+    .input-label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .input-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .text-field {
+      flex: 1;
+      position: relative;
+    }
+
+    .text-field input {
+      width: 100%;
+      padding: 12px 16px;
+      font-size: 14px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      outline: none;
+      transition: var(--transition);
+      font-family: inherit;
+    }
+
+    .text-field input:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(26,115,232,0.2);
+    }
+
+    .text-field .helper-text {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+      display: block;
+    }
+
+    .action-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 24px;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.25px;
+      text-transform: none;
+      transition: var(--transition);
+      min-width: 120px;
+    }
+
+    .action-button:hover {
+      background-color: var(--primary-hover);
+      box-shadow: 0 1px 2px rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+    }
+
+    .action-button:disabled {
+      background-color: #e8f0fe;
+      color: #a9b8d1;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .action-button .material-icons-round {
+      margin-right: 8px;
+      font-size: 18px;
+    }
+
+    .status-indicator {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 12px;
+      border-radius: 16px;
+      font-size: 14px;
+      font-weight: 500;
+      background-color: var(--secondary-color);
+      color: var(--text-secondary);
+    }
+
+    .status-indicator .material-icons-round {
+      font-size: 16px;
+      margin-right: 6px;
+    }
+
+    .status-indicator.success {
+      background-color: #e6f4ea;
+      color: var(--success-color);
+    }
+
+    .status-indicator.warning {
+      background-color: #fef7e0;
+      color: var(--warning-color);
+    }
+
+    .status-indicator.error {
+      background-color: #fce8e6;
+      color: var(--error-color);
+    }
+
+    .results-section {
+      display: none;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: var(--transition);
+    }
+
+    .results-section.visible {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .results-card {
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-top: 16px;
+    }
+
+    .results-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .results-table th {
+      text-align: left;
+      padding: 16px;
+      background-color: var(--secondary-color);
+      font-weight: 500;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .results-table td {
+      padding: 16px;
+      border-bottom: 1px solid var(--border-color);
+      vertical-align: middle;
+    }
+
+    .results-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .analysis-item {
+      display: flex;
+      align-items: center;
+      font-weight: 500;
+    }
+
+    .analysis-item .material-icons-round {
+      margin-right: 12px;
+      color: var(--primary-color);
+    }
+
+    .progress-container {
+      width: 100%;
+      height: 4px;
+      background-color: #e0e0e0;
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background-color: var(--primary-color);
+      width: 0;
+      transition: width 0.6s ease;
+    }
+
+    .confidence-score {
+      display: flex;
+      align-items: center;
+    }
+
+    .confidence-value {
+      font-weight: 500;
+      margin-right: 8px;
+    }
+
+    .confidence-meter {
+      flex: 1;
+      height: 8px;
+      background-color: #e0e0e0;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .confidence-level {
+      height: 100%;
+      background: linear-gradient(90deg, #f44336, #ff9800, #4caf50);
+      width: 0;
+      transition: width 0.6s ease;
+    }
+
+    .summary-text {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text-primary);
+      margin-top: 8px;
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 3px solid rgba(26, 115, 232, 0.2);
+      border-radius: 50%;
+      border-top-color: var(--primary-color);
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+         @keyframes spin {
+       to { transform: rotate(360deg); }
+     }
+     
+     .processing-status {
+       background-color: var(--surface-color);
+       border: 1px solid var(--border-color);
+       border-radius: 8px;
+       margin-bottom: 16px;
+       overflow: hidden;
+     }
+     
+     .status-header {
+       padding: 12px 16px;
+       background-color: var(--secondary-color);
+       border-bottom: 1px solid var(--border-color);
+       display: flex;
+       align-items: center;
+       font-weight: 500;
+       font-size: 14px;
+     }
+     
+     .status-header .material-icons-round {
+       margin-right: 8px;
+       color: var(--primary-color);
+       animation: spin 2s linear infinite;
+     }
+     
+     .processing-log {
+       max-height: 200px;
+       overflow-y: auto;
+       padding: 8px;
+     }
+     
+     .log-entry {
+       padding: 4px 8px;
+       margin: 2px 0;
+       border-radius: 4px;
+       font-size: 12px;
+       font-family: 'Courier New', monospace;
+       display: flex;
+       align-items: center;
+     }
+     
+     .log-entry .material-icons-round {
+       font-size: 14px;
+       margin-right: 6px;
+     }
+     
+     .log-entry.info {
+       background-color: #e3f2fd;
+       color: #1976d2;
+     }
+     
+     .log-entry.success {
+       background-color: #e8f5e8;
+       color: #388e3c;
+     }
+     
+     .log-entry.warning {
+       background-color: #fff3e0;
+       color: #f57c00;
+     }
+     
+     .log-entry.error {
+       background-color: #ffebee;
+       color: #d32f2f;
+     }
+     
+     /* Enhanced formatting for analysis results */
+     .analysis-section {
+       margin-bottom: 16px;
+       padding: 12px;
+       background-color: #fafafa;
+       border-radius: 6px;
+       border-left: 3px solid var(--primary-color);
+     }
+     
+     .analysis-section h4 {
+       margin: 0 0 8px 0;
+       color: var(--primary-color);
+       font-size: 14px;
+       font-weight: 600;
+     }
+     
+     .accent-highlight {
+       background: linear-gradient(135deg, #667eea, #764ba2);
+       color: white;
+       padding: 2px 6px;
+       border-radius: 12px;
+       font-size: 12px;
+       font-weight: 500;
+     }
+     
+     .percentage {
+       background-color: var(--success-color);
+       color: white;
+       padding: 1px 4px;
+       border-radius: 3px;
+       font-weight: 600;
+       font-size: 12px;
+     }
+     
+     .proficiency-level {
+       background-color: var(--primary-color);
+       color: white;
+       padding: 2px 6px;
+       border-radius: 8px;
+       font-size: 11px;
+       font-weight: 500;
+       text-transform: uppercase;
+     }
+     
+     .transcription-box {
+       background-color: #f8f9fa;
+       border: 1px solid var(--border-color);
+       border-radius: 6px;
+       padding: 12px;
+       margin-top: 8px;
+     }
+     
+     .transcription-content {
+       margin-top: 8px;
+       padding: 8px;
+       background-color: white;
+       border-radius: 4px;
+       font-style: italic;
+       color: var(--text-primary);
+       border-left: 3px solid var(--primary-color);
+     }
+
+    .footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: auto;
+    }
+
+    @media (max-width: 768px) {
+      .app-container {
+        padding: 16px;
+      }
+      
+      .main-content {
+        margin: 20px auto;
+      }
+      
+      .tool-header, .tool-body {
+        padding: 16px;
+      }
+      
+      .input-row {
+        flex-direction: column;
+      }
+      
+      .action-button {
+        width: 100%;
+      }
+      
+      .content-wrapper {
+        flex-direction: column;
+      }
+      
+      .chat-container {
+        position: relative;
+        top: auto;
+        right: auto;
+        width: 100%;
+        height: 450px;
+        margin-top: 20px;
+        transform: none;
+        order: 2;
+      }
+      
+      .chat-container.visible {
+        transform: none;
+      }
+      
+      .main-content-area {
+        order: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <div class="main-content">
+      <div class="tool-header">
+        <h1 class="tool-title">
+          <span class="material-icons-round" style="color: var(--primary-color); margin-right: 8px;">record_voice_over</span>
+          Ahsan Aman |Accent Detection & Analysis 
+        </h1>
+        <p class="tool-subtitle">Analyze speech samples to detect accents and evaluate English pronunciation confidence</p>
+      </div>
+      
+      <div class="content-wrapper">
+        <div class="main-content-area">
+          <div class="tool-body">
+            <div class="input-section">
+              <div class="input-card" id="inputCard">
+                <label for="audioLink" class="input-label">Audio/Video URL</label>
+                <div class="input-row">
+                  <div class="text-field">
+                    <input type="text" id="audioLink" placeholder="https://youtube.com/watch?v=... or https://loom.com/share/...">
+                    <span class="helper-text">Supports  Loom, Vimeo, direct audio files, and more. Long videos will be automatically optimized.</span>
+                  </div>
+                  <button id="processBtn" class="action-button" disabled onclick="processLink()">
+                    <span class="material-icons-round">play_arrow</span>
+                    Analyze
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <div class="results-section" id="results">
+              <h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 500;">Analysis Results</h3>
+           
+           <!-- Processing Status Section -->
+           <div id="processingStatus" class="processing-status" style="display: none;">
+             <div class="status-header">
+               <span class="material-icons-round">autorenew</span>
+               <span>Processing Status</span>
+             </div>
+             <div id="processingLog" class="processing-log">
+               <!-- Real-time processing updates will appear here -->
+             </div>
+           </div>
+          
+          <div class="results-card">
+            <table class="results-table">
+              <thead>
+                <tr>
+                  <th style="width: 40%;">Analysis Item</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <div class="analysis-item">
+                      <span class="material-icons-round">language</span>
+                      Accent Classification
+                    </div>
+                  </td>
+                  <td>
+                    <div id="accentStatus" class="status-indicator">
+                      <span class="material-icons-round">schedule</span>
+                      <span>Pending</span>
+                    </div>
+                    <div class="progress-container">
+                      <div id="accentProgress" class="progress-bar"></div>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="analysis-item">
+                      <span class="material-icons-round">assessment</span>
+                      English Confidence Score
+                    </div>
+                  </td>
+                  <td>
+                    <div id="confidenceStatus" class="status-indicator">
+                      <span class="material-icons-round">schedule</span>
+                      <span>Pending</span>
+                    </div>
+                    <div class="confidence-score">
+                      <span id="confidenceValue" class="confidence-value">0%</span>
+                      <div class="confidence-meter">
+                        <div id="confidenceLevel" class="confidence-level"></div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                                 <tr>
+                   <td>
+                     <div class="analysis-item">
+                       <span class="material-icons-round">transcription</span>
+                       Speech Transcription
+                     </div>
+                   </td>
+                   <td>
+                     <div id="transcriptionStatus" class="status-indicator">
+                       <span class="material-icons-round">schedule</span>
+                       <span>Pending</span>
+                     </div>
+                     <div id="transcriptionText" class="summary-text" style="display: none;">
+                       <!-- Transcription will be inserted here -->
+                     </div>
+                   </td>
+                 </tr>
+                 <tr>
+                   <td>
+                     <div class="analysis-item">
+                       <span class="material-icons-round">description</span>
+                       Analysis Summary
+                     </div>
+                   </td>
+                   <td>
+                     <div id="summaryStatus" class="status-indicator">
+                       <span class="material-icons-round">schedule</span>
+                       <span>Pending</span>
+                     </div>
+                     <div id="summaryText" class="summary-text" style="display: none;">
+                       <!-- Summary will be inserted here -->
+                     </div>
+                   </td>
+                 </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+        
+  <!-- Chat Interface -->
+  <div class="chat-container" id="chatContainer">
+      <div class="chat-header">
+        <span class="material-icons-round">chat</span>
+        <span>Ask About This Video</span>
+      </div>
+      
+      <div class="chat-messages" id="chatMessages">
+        <div class="chat-placeholder" id="chatPlaceholder">
+          💬 Analysis complete! You can now ask questions about the video content.
+          <br><br>
+          <small>Examples: "What was the main topic?" or "Summarize the key points"</small>
+        </div>
+      </div>
+      
+      <div class="chat-input-area">
+        <div class="chat-input-row">
+          <textarea 
+            class="chat-input" 
+            id="chatInput" 
+            placeholder="Ask a question about the video..."
+            rows="1"
+          ></textarea>
+          <button class="chat-send-btn" id="chatSendBtn" onclick="sendChatMessage()">
+            <span class="material-icons-round">send</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+        
+  <div class="footer">
+    <p>AHSAN AMAN | DEMO PROJECT</p>
+  </div>
+</div>
+
+  <script>
+    // DOM Elements
+    const linkInput = document.getElementById('audioLink');
+    const processBtn = document.getElementById('processBtn');
+    const results = document.getElementById('results');
+    const inputCard = document.getElementById('inputCard');
+    
+         // Status indicators
+     const accentStatus = document.getElementById('accentStatus');
+     const confidenceStatus = document.getElementById('confidenceStatus');
+     const transcriptionStatus = document.getElementById('transcriptionStatus');
+     const summaryStatus = document.getElementById('summaryStatus');
+    
+         // Progress elements
+     const accentProgress = document.getElementById('accentProgress');
+     const confidenceValue = document.getElementById('confidenceValue');
+     const confidenceLevel = document.getElementById('confidenceLevel');
+     const transcriptionText = document.getElementById('transcriptionText');
+     const summaryText = document.getElementById('summaryText');
+     
+     // Processing status elements
+     const processingStatus = document.getElementById('processingStatus');
+     const processingLog = document.getElementById('processingLog');
+     
+     // Chat elements
+     const chatContainer = document.getElementById('chatContainer');
+     const chatMessages = document.getElementById('chatMessages');
+     const chatPlaceholder = document.getElementById('chatPlaceholder');
+     const chatInput = document.getElementById('chatInput');
+     const chatSendBtn = document.getElementById('chatSendBtn');
+     
+     // Global session ID for chat
+     let currentSessionId = null;
+
+    // Event Listeners
+    linkInput.addEventListener('focus', () => {
+      inputCard.classList.add('focused');
+    });
+    
+    linkInput.addEventListener('blur', () => {
+      inputCard.classList.remove('focused');
+    });
+    
+    linkInput.addEventListener('input', validateInput);
+    
+    // Chat input listeners
+    chatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendChatMessage();
+      }
+    });
+    
+    chatInput.addEventListener('input', () => {
+      // Auto-resize textarea
+      chatInput.style.height = 'auto';
+      chatInput.style.height = Math.min(chatInput.scrollHeight, 100) + 'px';
+      
+      // Enable/disable send button
+      chatSendBtn.disabled = !chatInput.value.trim();
+    });
+    
+    // Functions
+    function validateInput() {
+      const value = linkInput.value.trim();
+      
+      // Check for video platforms
+      const videoPlatforms = [
+        'youtube.com', 'youtu.be', 'loom.com', 'vimeo.com',
+        'dailymotion.com', 'twitch.tv', 'facebook.com',
+        'instagram.com', 'tiktok.com', 'twitter.com', 'x.com'
+      ];
+      const isVideoUrl = videoPlatforms.some(platform => value.toLowerCase().includes(platform));
+      
+      // Check for direct audio files
+      const isAudioUrl = /^https?:\/\/.+\.(mp3|wav|ogg|m4a|aac|flac)(\?.*)?$/i.test(value);
+      
+      const isValid = isVideoUrl || isAudioUrl;
+      processBtn.disabled = !isValid;
+      
+      if (isValid) {
+        linkInput.setCustomValidity('');
+      } else {
+        linkInput.setCustomValidity('Please enter a valid video URL (YouTube, Loom, etc.) or audio file URL (MP3, WAV, OGG, etc.)');
+      }
+    }
+    
+         async function processLink() {
+       // Show loading state
+       processBtn.disabled = true;
+       processBtn.innerHTML = '<span class="loading-spinner"></span> Analyzing...';
+       
+       // Show results section with animation
+       results.classList.add('visible');
+       
+       // Show processing status
+       showProcessingStatus();
+       
+       // Reset all statuses to pending
+       resetAnalysisStatus();
+       
+       // Reset chat interface
+       resetChat();
+       
+       try {
+         const audioUrl = linkInput.value.trim();
+         
+         // Create session for real-time updates
+         const sessionResponse = await fetch('/create-session', {
+           method: 'POST'
+         });
+         const sessionData = await sessionResponse.json();
+         const sessionId = sessionData.session_id;
+         currentSessionId = sessionId;
+         
+         // Start listening for real-time updates
+                     startStatusPolling(sessionId);
+         
+         // Call the analyze API with session ID
+         const response = await fetch('/analyze', {
+           method: 'POST',
+           headers: {
+             'Content-Type': 'application/json',
+           },
+           body: JSON.stringify({ 
+             link: audioUrl,
+             session_id: sessionId
+           })
+         });
+         
+         const result = await response.json();
+         
+         if (result.status === 'success') {
+           hideProcessingStatus();
+           // Update UI with real results
+           updateAnalysisResults(result);
+         } else {
+           // Handle error
+           showAnalysisError(result.error_message || 'Analysis failed');
+         }
+         
+       } catch (error) {
+         console.error('Error:', error);
+         addProcessingLog('Network error occurred', 'error');
+         showAnalysisError('Network error occurred while analyzing audio');
+       }
+     }
+     
+     function startStatusPolling(sessionId) {
+       let isProcessingComplete = false;
+       let lastLogCount = 0;
+       
+       function pollStatus() {
+         if (isProcessingComplete) {
+           return;
+         }
+         
+         fetch(`/status/${sessionId}`)
+           .then(response => {
+             if (!response.ok) {
+               throw new Error(`HTTP ${response.status}`);
+             }
+             return response.json();
+           })
+           .then(data => {
+             // Add new log entries
+             if (data.logs && data.logs.length > lastLogCount) {
+               for (let i = lastLogCount; i < data.logs.length; i++) {
+                 const log = data.logs[i];
+                 addProcessingLog(log.message, log.type);
+               }
+               lastLogCount = data.logs.length;
+             }
+             
+             // Check if processing is complete
+             if (data.status === 'completed') {
+               isProcessingComplete = true;
+               addProcessingLog('Analysis completed!', 'success');
+               
+               // If we have the result, show it immediately
+               if (data.result) {
+                 showAnalysisResults(data.result);
+               }
+             } else if (data.status === 'error') {
+               isProcessingComplete = true;
+               addProcessingLog('Analysis failed', 'error');
+               showAnalysisError('Analysis failed - please try again');
+             } else {
+               // Continue polling
+               setTimeout(pollStatus, 2000); // Poll every 2 seconds
+             }
+           })
+           .catch(error => {
+             console.error('Polling error:', error);
+             addProcessingLog('Connection error - retrying...', 'warning');
+             setTimeout(pollStatus, 3000); // Retry after 3 seconds
+           });
+       }
+       
+       // Start polling immediately
+       pollStatus();
+     }
+    
+         function addProcessingLog(message, type = 'info') {
+       const logEntry = document.createElement('div');
+       logEntry.className = `log-entry ${type}`;
+       
+       const icon = type === 'info' ? 'info' : 
+                   type === 'success' ? 'check_circle' :
+                   type === 'warning' ? 'warning' : 'error';
+       
+       logEntry.innerHTML = `
+         <span class="material-icons-round">${icon}</span>
+         <span>${message}</span>
+       `;
+       
+       processingLog.appendChild(logEntry);
+       processingLog.scrollTop = processingLog.scrollHeight;
+     }
+     
+     function showProcessingStatus() {
+       processingStatus.style.display = 'block';
+       processingLog.innerHTML = '';
+       addProcessingLog('Starting analysis...', 'info');
+     }
+     
+     function hideProcessingStatus() {
+       setTimeout(() => {
+         processingStatus.style.display = 'none';
+       }, 3000); // Hide after 3 seconds
+     }
+     
+     function resetAnalysisStatus() {
+       // Reset all status indicators
+       accentStatus.innerHTML = '<span class="material-icons-round">schedule</span> <span>Processing...</span>';
+       accentStatus.className = 'status-indicator';
+       accentProgress.style.width = '0%';
+       
+       confidenceStatus.innerHTML = '<span class="material-icons-round">schedule</span> <span>Pending...</span>';
+       confidenceStatus.className = 'status-indicator';
+       confidenceValue.textContent = '0%';
+       confidenceLevel.style.width = '0%';
+       
+       transcriptionStatus.innerHTML = '<span class="material-icons-round">schedule</span> <span>Transcribing...</span>';
+       transcriptionStatus.className = 'status-indicator';
+       transcriptionText.style.display = 'none';
+       transcriptionText.innerHTML = '';
+       
+       summaryStatus.innerHTML = '<span class="material-icons-round">schedule</span> <span>Pending...</span>';
+       summaryStatus.className = 'status-indicator';
+       summaryText.style.display = 'none';
+       summaryText.innerHTML = '';
+     }
+     
+     function formatAnalysisText(text) {
+       // Enhanced HTML formatting for single analysis section
+       let formatted = text
+         // Add line breaks before numbered sections for better readability
+         .replace(/(\d+\.\s*[A-Z][^:]*:)/g, '<br><br><strong>$1</strong>')
+         // Convert any remaining bold markdown to HTML
+         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+         // Convert existing line breaks to proper HTML
+         .replace(/\n\n/g, '<br><br>')
+         .replace(/\n/g, '<br>')
+         // Style specific accent terms
+         .replace(/(American|British|Australian|Indian|Canadian|Scottish|Irish|South African)\s+(English|accent)/gi, '<span class="accent-highlight">$1 $2</span>')
+         // Style percentages
+         .replace(/(\d+%)/g, '<span class="percentage">$1</span>')
+         // Style proficiency levels
+         .replace(/(Native|Advanced|Intermediate|Beginner)(?=\s|$|\.)/g, '<span class="proficiency-level">$1</span>');
+       
+       // Clean up any leading breaks and wrap in a single analysis section
+       formatted = formatted.replace(/^(<br>)+/, '');
+       return `<div class="analysis-section">${formatted}</div>`;
+     }
+     
+     function showAnalysisResults(result) {
+       // Show results section
+       resultsSection.classList.add('visible');
+       updateAnalysisResults(result);
+     }
+     
+     function showAnalysisError(message) {
+       processBtn.disabled = false;
+       processBtn.innerHTML = '<span class="material-icons-round">replay</span> Try Again';
+       addProcessingLog(message, 'error');
+     }
+     
+     function updateAnalysisResults(result) {
+       // Update accent classification
+       setTimeout(() => {
+         accentProgress.style.width = '100%';
+         accentStatus.innerHTML = `<span class="material-icons-round">check_circle</span> <span>${result.accent_classification}</span>`;
+         accentStatus.classList.add('success');
+       }, 500);
+       
+       // Update confidence score
+       setTimeout(() => {
+         const targetScore = result.confidence_score;
+         let progress = 0;
+         const interval = setInterval(() => {
+           progress++;
+           confidenceValue.textContent = `${progress}%`;
+           confidenceLevel.style.width = `${progress}%`;
+           
+           if (progress >= targetScore) {
+             clearInterval(interval);
+             confidenceStatus.innerHTML = `<span class="material-icons-round">check_circle</span> <span>${result.proficiency_level}</span>`;
+             confidenceStatus.classList.add('success');
+           }
+         }, 20);
+       }, 1000);
+       
+       // Update transcription
+       setTimeout(() => {
+         transcriptionStatus.innerHTML = '<span class="material-icons-round">check_circle</span> <span>Completed</span>';
+         transcriptionStatus.classList.add('success');
+         transcriptionText.style.display = 'block';
+         transcriptionText.innerHTML = `
+           <div class="transcription-box">
+             <strong>📝 Transcribed Text:</strong>
+             <div class="transcription-content">"${result.transcribed_text}"</div>
+           </div>
+         `;
+       }, 1500);
+       
+       // Update summary
+       setTimeout(() => {
+         summaryStatus.innerHTML = '<span class="material-icons-round">check_circle</span> <span>Completed</span>';
+         summaryStatus.classList.add('success');
+         summaryText.style.display = 'block';
+         summaryText.innerHTML = formatAnalysisText(result.detailed_analysis);
+         
+         // Reset button
+         processBtn.disabled = false;
+         processBtn.innerHTML = '<span class="material-icons-round">replay</span> Analyze Again';
+         
+         // Show chat interface with fade-in effect
+         setTimeout(() => {
+           showChatInterface();
+         }, 1000);
+       }, 2500);
+     }
+     
+     function showAnalysisError(errorMessage) {
+       // Update all statuses to error
+       accentStatus.innerHTML = '<span class="material-icons-round">error</span> <span>Failed</span>';
+       accentStatus.classList.add('error');
+       
+       confidenceStatus.innerHTML = '<span class="material-icons-round">error</span> <span>Failed</span>';
+       confidenceStatus.classList.add('error');
+       
+       transcriptionStatus.innerHTML = '<span class="material-icons-round">error</span> <span>Failed</span>';
+       transcriptionStatus.classList.add('error');
+       
+       summaryStatus.innerHTML = '<span class="material-icons-round">error</span> <span>Failed</span>';
+       summaryStatus.classList.add('error');
+       summaryText.style.display = 'block';
+       summaryText.innerHTML = `<strong>Error:</strong> ${errorMessage}`;
+       
+       // Reset button
+       processBtn.disabled = false;
+       processBtn.innerHTML = '<span class="material-icons-round">replay</span> Try Again';
+     }
+     
+     function showChatInterface() {
+       chatContainer.classList.add('visible');
+       chatSendBtn.disabled = true; // Initially disabled
+     }
+     
+     function hideChatInterface() {
+       chatContainer.classList.remove('visible');
+       chatMessages.innerHTML = '';
+       chatMessages.appendChild(chatPlaceholder);
+     }
+     
+     function addChatMessage(message, isUser = false) {
+       // Remove placeholder if it exists
+       if (chatPlaceholder.parentNode) {
+         chatPlaceholder.remove();
+       }
+       
+       const messageDiv = document.createElement('div');
+       messageDiv.className = `chat-message ${isUser ? 'user' : 'bot'}`;
+       
+       if (isUser) {
+         messageDiv.textContent = message;
+       } else {
+         // For bot messages, format with timestamps if present
+         const formattedMessage = message.replace(/\[(\d+\.?\d*s-\d+\.?\d*s)\]/g, '<span class="timestamp">[$1]</span>');
+         messageDiv.innerHTML = formattedMessage;
+       }
+       
+       chatMessages.appendChild(messageDiv);
+       chatMessages.scrollTop = chatMessages.scrollHeight;
+     }
+     
+     async function sendChatMessage() {
+       const message = chatInput.value.trim();
+       if (!message || !currentSessionId) return;
+       
+       // Add user message
+       addChatMessage(message, true);
+       
+       // Clear input and disable send button
+       chatInput.value = '';
+       chatInput.style.height = 'auto';
+       chatSendBtn.disabled = true;
+       
+       // Show typing indicator
+       const typingDiv = document.createElement('div');
+       typingDiv.className = 'chat-message bot';
+       typingDiv.innerHTML = '<span style="opacity: 0.6;">🤔 Thinking...</span>';
+       typingDiv.id = 'typing-indicator';
+       chatMessages.appendChild(typingDiv);
+       chatMessages.scrollTop = chatMessages.scrollHeight;
+       
+       try {
+         // Send question to backend
+         const response = await fetch('/ask-question', {
+           method: 'POST',
+           headers: {
+             'Content-Type': 'application/json',
+           },
+           body: JSON.stringify({
+             session_id: currentSessionId,
+             question: message
+           })
+         });
+         
+         const result = await response.json();
+         
+         // Remove typing indicator
+         const typingIndicator = document.getElementById('typing-indicator');
+         if (typingIndicator) {
+           typingIndicator.remove();
+         }
+         
+         if (result.status === 'success') {
+           addChatMessage(result.answer);
+         } else {
+           addChatMessage(result.error || 'Sorry, I encountered an error processing your question.');
+         }
+         
+       } catch (error) {
+         // Remove typing indicator
+         const typingIndicator = document.getElementById('typing-indicator');
+         if (typingIndicator) {
+           typingIndicator.remove();
+         }
+         
+         addChatMessage('Sorry, there was a network error. Please try again.');
+         console.error('Chat error:', error);
+       }
+     }
+     
+     // Reset chat when starting new analysis
+     function resetChat() {
+       hideChatInterface();
+       currentSessionId = null;
+     }
+  </script>
+</body>
+</html>

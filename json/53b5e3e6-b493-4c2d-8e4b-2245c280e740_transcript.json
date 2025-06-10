@@ -1,0 +1,37 @@
+{
+  "session_id": "53b5e3e6-b493-4c2d-8e4b-2245c280e740",
+  "full_text": " Hi, I'm Caleb Yates with Bramlett Partners Real Estate, proudly serving clients throughout Central Texas. I take the time to understand each of my clients' unique goals and then guide them through the buying and selling process with strategy, integrity, and heart. Whether you're ready to make a move or just exploring your options, I'm here to help.",
+  "language": "en",
+  "segments": [
+    {
+      "start": 0.6,
+      "end": 5.54,
+      "text": "Hi, I'm Caleb Yates with Bramlett Partners Real Estate, proudly serving clients throughout",
+      "duration": 4.94
+    },
+    {
+      "start": 5.54,
+      "end": 6.4,
+      "text": "Central Texas.",
+      "duration": 0.86
+    },
+    {
+      "start": 7.66,
+      "end": 12.76,
+      "text": "I take the time to understand each of my clients' unique goals and then guide them through",
+      "duration": 5.1
+    },
+    {
+      "start": 12.76,
+      "end": 17.1,
+      "text": "the buying and selling process with strategy, integrity, and heart.",
+      "duration": 4.34
+    },
+    {
+      "start": 18.1,
+      "end": 22.0,
+      "text": "Whether you're ready to make a move or just exploring your options, I'm here to help.",
+      "duration": 3.9
+    }
+  ]
+}
