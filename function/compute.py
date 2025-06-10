@@ -27,9 +27,7 @@ OLLAMA_MODEL = "llama3.1:8b"  # Ollama model to use: llama3.1, llama3, mistral, 
 USE_FALLBACK = True  # If Ollama fails, fallback to OpenAI?
 
 # Initialize OpenAI client
-client = OpenAI(
-    api_key="API_KEY_HERE"
-)
+
 # Create temp directory for processing
 TEMP_DIR = tempfile.mkdtemp(prefix='accent_detection_')
 
